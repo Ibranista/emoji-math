@@ -120,4 +120,9 @@
   body {
     @apply bg-background text-foreground;
   }
+
+}
+
+@layer utilities {
+  /* custom here */
 }
