@@ -2,9 +2,12 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import { NextIntlClientProvider } from "next-intl";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import Container from "@/components/ui/Container";
+import { quick_sand_font, urbanist_font, wendy_one_font } from "@/fonts/fonts";
 
 import StoreProvider from "./StoreProvider";
 
@@ -31,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${wendy_one_font.variable} ${quick_sand_font.variable} ${urbanist_font.variable} antialiased`}
       >
         <StoreProvider>
           <NextIntlClientProvider>
@@ -42,7 +45,18 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              {children}
+              <Container className="relative h-screen bg-primary overflow-hidden main-app-bg shadow-[0px_4px_4px_rgba(0, 0, 0, 0.973)]">
+                <Image
+                  src="/main-bg.svg"
+                  alt="background"
+                  fill
+                  className="object-cover z-10 pointer-events-none select-none"
+                  style={{ position: "absolute", inset: 0 }}
+                  aria-hidden="true"
+                  priority
+                />
+                <div className="relative z-20 h-full">{children}</div>
+              </Container>
             </ThemeProvider>
           </NextIntlClientProvider>
         </StoreProvider>
