@@ -179,10 +179,6 @@
     text-transform: uppercase;
     color: #FFFFFF;
     -webkit-text-stroke: 1px rgba(0, 0, 0, 0.6);
-    flex: none;
-    order: 0;
-    align-self: stretch;
-    flex-grow: 0;
   }
 
   .solve-fun {
@@ -220,6 +216,34 @@
     line-height: 22px;
     text-align: center;
     color: #000000;
+  }
+
+  .emoji-card {
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+    background: url('/bg-ecclipse.svg') center center/cover no-repeat;
+    @apply flex justify-center items-center;
+  }
+
+  .blurry-bg {
+    /* From https://css.glass */
+    background: rgba(255, 255, 255, 0.24);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    filter: blur(20px);
+  }
+
+  .emoji-result {
+    font-family: 'Wendy One';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 30.9816px;
+    line-height: 33px;
+    text-align: center;
+    color: #423C3C;
   }
 
 }
