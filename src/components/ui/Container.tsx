@@ -1,7 +1,8 @@
+"use client";
+import { motion, MotionProps } from "framer-motion";
 import React from "react";
 
 import { cn } from "@/lib/utils";
-import { motion, MotionProps } from "framer-motion";
 
 type ContainerProps<T extends React.ElementType> = {
   as?: T;

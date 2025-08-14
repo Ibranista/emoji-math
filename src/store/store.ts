@@ -3,9 +3,8 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 
 import { gameQuestionsApi } from "../services/game-questions";
 import { pokemonApi } from "../services/pokemon";
-
-import timerReducer from "./feature/timerSlice";
 import questionsReducer from "./feature/questionsSlice";
+import timerReducer from "./feature/timerSlice";
 
 export const store = configureStore({
   reducer: {
