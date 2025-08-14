@@ -1,6 +1,6 @@
 const path = "/emojis";
 
-const emojiNames = ["grin", "pumkin", "side-eyes"] as const;
+const emojiNames = ["grin", "pumpkin", "side-eyes"] as const;
 
 type EmojiName = (typeof emojiNames)[number];
 

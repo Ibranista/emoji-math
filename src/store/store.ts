@@ -1,14 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
+import { gameQuestionsApi } from "../services/game-questions";
 import { pokemonApi } from "../services/pokemon";
 
 export const store = configureStore({
   reducer: {
     [pokemonApi.reducerPath]: pokemonApi.reducer,
+    [gameQuestionsApi.reducerPath]: gameQuestionsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(pokemonApi.middleware),
+    getDefaultMiddleware().concat(
+      pokemonApi.middleware,
+      gameQuestionsApi.middleware,
+    ),
 });
 
 // optional, but required for refetchOnFocus/refetchOnReconnect behaviors

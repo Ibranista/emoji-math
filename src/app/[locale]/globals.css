@@ -246,4 +246,14 @@
     color: #423C3C;
   }
 
+  .answer-question-text {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 23px;
+    line-height: 24px;
+    text-align: center;
+    color: #FFFFFF;
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.6);
+  }
+
 }

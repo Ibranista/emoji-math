@@ -1,16 +1,24 @@
 import { motion } from "framer-motion";
 
+import { cn } from "@/lib/utils";
+
 type MotionBtnProps = {
   onClick: () => void;
   disabled: boolean;
   setRevealed: (value: boolean) => void;
   label: string;
+  className?: string;
 };
 
-export function MotionBtn({ onClick, disabled, label }: MotionBtnProps) {
+export function MotionBtn({
+  onClick,
+  disabled,
+  label,
+  className,
+}: MotionBtnProps) {
   return (
     <motion.button
-      className="play-btn play-txt mt-6"
+      className={cn("play-btn play-txt mt-6", className)}
       whileHover={{
         scale: 1.05,
         boxShadow:

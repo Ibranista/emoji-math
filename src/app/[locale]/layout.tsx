@@ -45,7 +45,7 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <Container className="relative h-screen bg-primary overflow-hidden main-app-bg shadow-[0px_4px_4px_rgba(0, 0, 0, 0.973)]">
+              <Container className="relative h-screen bg-primary overflow-hidden main-app-bg shadow-[0px_4px_4px_rgba(0, 0, 0, 0.973)] mx-auto">
                 <Image
                   src="/main-bg.svg"
                   alt="background"
