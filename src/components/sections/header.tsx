@@ -1,15 +1,15 @@
 import Image from "next/image";
 import React from "react";
+import { useSelector } from "react-redux";
+
+import { selectSeconds } from "@/store/feature/timerSlice";
 
 import Container from "../ui/Container";
 import { Typography } from "../ui/typography";
-import { useTimer } from "@/hooks/timer";
 
 function Header() {
-  // Timer state in seconds (from utils)
-  const seconds = useTimer(0);
+  const seconds = useSelector(selectSeconds);
 
-  // Format seconds to mm:ss and split into digits
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
   const mm = String(minutes).padStart(2, "0");

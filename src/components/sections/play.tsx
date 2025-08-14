@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-
 import React from "react";
+import { useSelector } from "react-redux";
+
 import { emojis } from "@/data/emojis";
-import { TQuestion } from "@/types/general.types";
 import { useBoardFetch } from "@/hooks/boardFetch";
+import { selectSelectedAnswers } from "@/store/selectors/questions.selector";
+import { TQuestion } from "@/types/general.types";
 
 import CompletionModal from "../modals/completion.modal";
 import { MotionBtn } from "../motion-btn";
@@ -21,8 +23,6 @@ import {
 } from "../ui/card";
 import Container, { PlayContainer, PlayItemsWrapper } from "../ui/Container";
 import { Typography } from "../ui/typography";
-import { useSelector } from "react-redux";
-import { selectSelectedAnswers } from "@/store/selectors/questions.selector";
 
 function PlaySection() {
   const {
@@ -75,7 +75,7 @@ function PlaySection() {
                         emoji={emojis[item as keyof typeof emojis]}
                         name={item}
                       />
-                    )
+                    ),
                   )}
                   <Equals />
                   <EmojiResultCard result={q.result ?? "?"} />
@@ -175,13 +175,17 @@ function PlaySection() {
                       <AnswersCard
                         key={choice}
                         answer={choice}
-                        onClick={() => handleAnswerSelect(currentBoard, choice)}
-                        isAnswered={selectedAnswers[currentBoard] === choice}
+                        onClick={() =>
+                          handleAnswerSelect(currentBoard!, choice)
+                        }
+                        isAnswered={
+                          selectedAnswers[currentBoard]?.answer === choice
+                        }
                       />
                     ))
                   }
                 </Container>
-              ) : null
+              ) : null,
             )}
           </Container>
         </Container>

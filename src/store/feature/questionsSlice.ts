@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
 import { RootState } from "../store";
 
 interface QuestionsState {
-  selectedAnswers: Record<string, string>;
+  selectedAnswers: Record<string, { answer: string; seconds: number }>;
 }
 
 const initialState: QuestionsState = {
@@ -15,9 +16,16 @@ const questionSlice = createSlice({
   reducers: {
     setAnswer: (
       state,
-      action: PayloadAction<{ boardId: string; answer: string }>
+      action: PayloadAction<{
+        boardId: string;
+        answer: string;
+        seconds: number;
+      }>,
     ) => {
-      state.selectedAnswers[action.payload.boardId] = action.payload.answer;
+      state.selectedAnswers[action.payload.boardId] = {
+        answer: action.payload.answer,
+        seconds: action.payload.seconds,
+      };
     },
   },
 });
