@@ -8,9 +8,9 @@ import {
   setAnswer,
 } from "@/store/feature/questionsSlice";
 import {
-  incrementTimer,
   resetTimer,
   selectSeconds,
+  setSeconds,
 } from "@/store/feature/timerSlice";
 import { TBoardGroup, TQuestion } from "@/types/general.types";
 
@@ -19,19 +19,55 @@ export function useBoardFetch() {
   const selectedAnswers = useSelector(selectSelectedAnswers);
   const seconds = useSelector(selectSeconds);
 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const [showModal, setShowModal] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [questions, setQuestions] = useState<Record<string, TBoardGroup>>({});
   const [currentBoard, setCurrentBoard] = useState<string | null>(null);
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [trigger, { isLoading: loading, data }] = useLazyGetQuestionsQuery();
 
-  const handlePlay = async () => {
-    // Reset timer before starting
-    dispatch(resetTimer());
+  const startCountdown = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => dispatch(incrementTimer()), 1000);
+
+    dispatch(setSeconds(10));
+
+    intervalRef.current = setInterval(() => {
+      // @ts-expect-error: dispatching a thunk for timer logic
+      dispatch((dispatch, getState) => {
+        const current = getState().timer.seconds;
+        if (current > 0) {
+          dispatch(setSeconds(current - 1));
+        } else {
+          clearInterval(intervalRef.current!);
+        }
+      });
+    }, 1000);
+  };
+
+  const getNextBoardId = (boardId: string | null) => {
+    if (!boardId) return null;
+    const boardKeys = Object.keys(questions);
+    const nextIndex = boardKeys.indexOf(boardId) + 1;
+    return nextIndex < boardKeys.length ? boardKeys[nextIndex] : null;
+  };
+
+  useEffect(() => {
+    if (seconds === 0 && currentBoard) {
+      const nextBoard = getNextBoardId(currentBoard);
+      if (nextBoard) {
+        setCurrentBoard(nextBoard);
+        dispatch(setSeconds(10)); // restart timer for next board
+      } else {
+        setCurrentBoard(null);
+        setTimeout(() => setShowModal(true), 400);
+      }
+    }
+  }, [seconds, currentBoard, questions, dispatch]);
+
+  const handlePlay = async () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     const key = process.env.NEXT_PUBLIC_ENCRYPTION_KEY!;
     const res = await trigger().unwrap();
@@ -71,16 +107,15 @@ export function useBoardFetch() {
     const firstBoardKey = Object.keys(allBoards)[0];
     setCurrentBoard(firstBoardKey);
     setRevealed(true);
+    startCountdown();
   };
 
   const handleAnswerSelect = (boardId: string, answer: string) => {
-    // Create a new array with the incoming answer
     const updatedAnswers = [
       ...(Array.isArray(selectedAnswers) ? selectedAnswers : []),
       { boardId, answer, seconds },
     ];
 
-    // If answer for this boardId already exists, replace it
     const existingIndex = updatedAnswers.findIndex(
       (a) => a.boardId === boardId,
     );
@@ -88,29 +123,18 @@ export function useBoardFetch() {
       updatedAnswers[existingIndex] = { boardId, answer, seconds };
     }
 
-    // Dispatch updated array to Redux
     updatedAnswers.forEach((ans) => dispatch(setAnswer(ans)));
 
-    // Reset timer
-    dispatch(resetTimer());
-
-    // Check if all questions with choices are answered using updated array
-    const boardQuestions = questions[boardId]?.board || [];
-    // Since choices is at the group level, just check if this boardId has an answer
-    const allAnswered =
-      boardQuestions.length > 0 &&
-      updatedAnswers.some((a) => a.boardId === boardId);
-
-    if (allAnswered) {
-      const boardKeys = Object.keys(questions);
-      const nextBoardIndex = boardKeys.indexOf(boardId) + 1;
-      if (nextBoardIndex < boardKeys.length) {
-        setCurrentBoard(boardKeys[nextBoardIndex]);
-      } else {
-        setCurrentBoard(null);
-        setTimeout(() => setShowModal(true), 400);
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      }
+    // Move to next board manually
+    const nextBoard = getNextBoardId(boardId);
+    if (nextBoard) {
+      setCurrentBoard(nextBoard);
+      dispatch(setSeconds(10)); // restart timer
+    } else {
+      setCurrentBoard(null);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      dispatch(setSeconds(0));
+      setTimeout(() => setShowModal(true), 400);
     }
   };
 
@@ -119,12 +143,12 @@ export function useBoardFetch() {
     0,
   );
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      dispatch(resetTimer());
     };
-  }, []);
+  }, [dispatch]);
 
   return {
     showModal,
@@ -142,6 +166,6 @@ export function useBoardFetch() {
     handlePlay,
     handleAnswerSelect,
     totalQuestions,
-    seconds, // add seconds to the returned object
+    seconds,
   };
 }
