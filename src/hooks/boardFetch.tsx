@@ -12,7 +12,7 @@ import {
   resetTimer,
   selectSeconds,
 } from "@/store/feature/timerSlice";
-import { TQuestion } from "@/types/general.types";
+import { TBoardGroup, TQuestion } from "@/types/general.types";
 
 export function useBoardFetch() {
   const dispatch = useDispatch();
@@ -21,7 +21,7 @@ export function useBoardFetch() {
 
   const [showModal, setShowModal] = useState(false);
   const [revealed, setRevealed] = useState(false);
-  const [questions, setQuestions] = useState<Record<string, TQuestion[]>>({});
+  const [questions, setQuestions] = useState<Record<string, TBoardGroup>>({});
   const [currentBoard, setCurrentBoard] = useState<string | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,31 +36,35 @@ export function useBoardFetch() {
     const key = process.env.NEXT_PUBLIC_ENCRYPTION_KEY!;
     const res = await trigger().unwrap();
 
-    const allBoards: Record<string, TQuestion[]> = {};
+    const allBoards: Record<string, TBoardGroup> = {};
 
-    for (const boardKey in res.questions) {
-      if (res.questions.hasOwnProperty(boardKey)) {
-        const boardQuestions = res.questions[boardKey];
-        const decryptedBoard = await Promise.all(
-          boardQuestions.map(async (q: TQuestion) => ({
-            ...q,
-            expression: q.expression
-              ? JSON.parse(
-                  await decrypt(q.expression as unknown as string, key),
-                )
+    for (const q of res.questions) {
+      const decryptedQuestion = q.question
+        ? await decrypt(q.question, key)
+        : "";
+      const decryptedModelId = q.modelId ? await decrypt(q.modelId, key) : "";
+
+      const decryptedBoard = await Promise.all(
+        q.board.map(async (b: TQuestion) => ({
+          id: b.id,
+          expression: b.expression
+            ? JSON.parse(await decrypt(b.expression as unknown as string, key))
+            : null,
+          result:
+            b.result !== null && b.result !== undefined
+              ? Number(await decrypt(String(b.result), key))
               : null,
-            result:
-              q.result !== null && q.result !== undefined
-                ? Number(await decrypt(q.result, key))
-                : null,
-            choices: q.choices
-              ? JSON.parse(await decrypt(q.choices, key))
-              : null,
-            answer: q.answer ? await decrypt(q.answer, key) : null,
-          })),
-        );
-        allBoards[boardKey] = decryptedBoard;
-      }
+        })),
+      );
+
+      allBoards[decryptedModelId] = {
+        board: decryptedBoard,
+        choices: q.choices
+          ? JSON.parse(await decrypt(q.choices as string, key))
+          : null,
+        question: decryptedQuestion,
+        modelId: decryptedModelId,
+      };
     }
 
     setQuestions(allBoards);
@@ -70,23 +74,32 @@ export function useBoardFetch() {
   };
 
   const handleAnswerSelect = (boardId: string, answer: string) => {
-    // Include current seconds in local copy
-    const newSelectedAnswers = {
-      ...selectedAnswers,
-      [boardId]: { answer, seconds },
-    };
+    // Create a new array with the incoming answer
+    const updatedAnswers = [
+      ...(Array.isArray(selectedAnswers) ? selectedAnswers : []),
+      { boardId, answer, seconds },
+    ];
 
-    // Dispatch to Redux
-    dispatch(setAnswer({ boardId, answer, seconds }));
+    // If answer for this boardId already exists, replace it
+    const existingIndex = updatedAnswers.findIndex(
+      (a) => a.boardId === boardId,
+    );
+    if (existingIndex !== -1) {
+      updatedAnswers[existingIndex] = { boardId, answer, seconds };
+    }
+
+    // Dispatch updated array to Redux
+    updatedAnswers.forEach((ans) => dispatch(setAnswer(ans)));
 
     // Reset timer
     dispatch(resetTimer());
 
-    // Check if all questions with choices are answered using local copy
-    const boardQuestions = questions[boardId] || [];
-    const allAnswered = boardQuestions
-      .filter((q) => q.choices)
-      .every(() => newSelectedAnswers[boardId]);
+    // Check if all questions with choices are answered using updated array
+    const boardQuestions = questions[boardId]?.board || [];
+    // Since choices is at the group level, just check if this boardId has an answer
+    const allAnswered =
+      boardQuestions.length > 0 &&
+      updatedAnswers.some((a) => a.boardId === boardId);
 
     if (allAnswered) {
       const boardKeys = Object.keys(questions);
@@ -102,7 +115,7 @@ export function useBoardFetch() {
   };
 
   const totalQuestions = Object.values(questions).reduce(
-    (acc, arr) => acc + arr.filter((q) => q.choices).length,
+    (acc, q) => acc + (q.choices ? 1 : 0),
     0,
   );
 

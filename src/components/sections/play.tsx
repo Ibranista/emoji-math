@@ -57,7 +57,7 @@ function PlaySection() {
         {loading ? (
           <LoadingDisplay />
         ) : showBoard ? (
-          questions[currentBoard]?.map((q: TQuestion, idx: number) => (
+          questions[currentBoard]?.board.map((q: TQuestion, idx: number) => (
             <PlayItemsWrapper key={`${currentBoard}-${q.id}`} idx={idx}>
               {q.expression && (
                 <LineItems className="relative">
@@ -78,7 +78,13 @@ function PlaySection() {
                     ),
                   )}
                   <Equals />
-                  <EmojiResultCard result={q.result ?? "?"} />
+                  <EmojiResultCard
+                    result={
+                      q.result !== null && q.result !== undefined
+                        ? String(q.result)
+                        : "?"
+                    }
+                  />
                 </LineItems>
               )}
             </PlayItemsWrapper>
@@ -157,36 +163,30 @@ function PlaySection() {
           className="px-0 !max-w-full flex flex-col justify-center items-center mt-3.5"
         >
           <Typography className="answer-question-text font-wendy-one">
-            Select the right answer from the three choices below
+            {questions[currentBoard]?.question}
           </Typography>
           <Container
             as="article"
             className="!max-w-none !px-0 flex gap-x-[30px] justify-center items-center mt-2.5"
           >
-            {questions[currentBoard]?.map((q) =>
-              q.choices ? (
-                <Container
-                  key={`${currentBoard}-${q.id}`}
-                  className="flex gap-x-4 justify-center items-center mt-2.5"
-                >
-                  {
-                    //@ts-expect-error choices is not a map
-                    q.choices.map((choice: string) => (
-                      <AnswersCard
-                        key={choice}
-                        answer={choice}
-                        onClick={() =>
-                          handleAnswerSelect(currentBoard!, choice)
-                        }
-                        isAnswered={
-                          selectedAnswers[currentBoard]?.answer === choice
-                        }
-                      />
-                    ))
-                  }
-                </Container>
-              ) : null,
-            )}
+            {questions[currentBoard]?.choices ? (
+              <Container
+                key={questions[currentBoard]?.modelId}
+                className="flex gap-x-4 justify-center items-center mt-2.5"
+              >
+                {questions[currentBoard]?.choices.map((choice: string) => (
+                  <AnswersCard
+                    key={choice}
+                    answer={choice}
+                    onClick={() => handleAnswerSelect(currentBoard!, choice)}
+                    isAnswered={
+                      selectedAnswers.find((a) => a.boardId === currentBoard)
+                        ?.answer === choice
+                    }
+                  />
+                ))}
+              </Container>
+            ) : null}
           </Container>
         </Container>
       )}
