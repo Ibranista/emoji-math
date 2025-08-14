@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 import { Typography } from "./typography";
+import Container from "./Container";
 
 export function EmojiCard({ emoji, name }: { emoji: string; name: string }) {
   return (
@@ -164,5 +165,21 @@ export function LoadingDisplay() {
         />
       ))}
     </>
+  );
+}
+
+export function ClickToPlayBanner() {
+  return (
+    <Container
+      as="article"
+      className="px-0 max-w-full flex flex-col gap-y-3 justify-center items-center absolute inset-0"
+    >
+      <Typography className="click-to-play">
+        Click Play to start the game
+      </Typography>
+      <Typography className="max-w-[283px] text-center solve-fun mx-auto">
+        Solve fun math puzzles using emojis instead of numbers!
+      </Typography>
+    </Container>
   );
 }
