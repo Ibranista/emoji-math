@@ -1,12 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import React, { useState } from "react";
 
+import React from "react";
 import { emojis } from "@/data/emojis";
-import { decrypt } from "@/lib/crypto-web";
-import { useLazyGetQuestionsQuery } from "@/services/game-questions";
 import { TQuestion } from "@/types/general.types";
+import { useBoardFetch } from "@/hooks/boardFetch";
 
 import CompletionModal from "../modals/completion.modal";
 import { MotionBtn } from "../motion-btn";
@@ -17,90 +16,32 @@ import {
   EmojiResultCard,
   Equals,
   LineItems,
+  LoadingDisplay,
   Plus,
 } from "../ui/card";
-import Container from "../ui/Container";
+import Container, { PlayContainer, PlayItemsWrapper } from "../ui/Container";
 import { Typography } from "../ui/typography";
+import { useSelector } from "react-redux";
+import { selectSelectedAnswers } from "@/store/selectors/questions.selector";
 
-function Hero() {
-  const [showModal, setShowModal] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const [questions, setQuestions] = useState<Record<string, TQuestion[]>>({});
-  const [loading, setLoading] = useState(false);
-  const [currentBoard, setCurrentBoard] = useState<string | null>(null);
-  const [selectedAnswers, setSelectedAnswers] = useState<
-    Record<string, string>
-  >({});
+function PlaySection() {
+  const {
+    showModal,
+    setShowModal,
+    revealed,
+    setRevealed,
+    questions,
+    currentBoard,
+    selectedAnswers,
+    loading,
+    handlePlay,
+    handleAnswerSelect,
+    totalQuestions,
+  } = useBoardFetch();
 
-  const [trigger] = useLazyGetQuestionsQuery();
-
-  const handlePlay = async () => {
-    setLoading(true);
-    const key = process.env.NEXT_PUBLIC_ENCRYPTION_KEY!;
-    const res = await trigger().unwrap();
-
-    const allBoards: Record<string, TQuestion[]> = {};
-    for (const boardKey in res.questions) {
-      if (res.questions.hasOwnProperty(boardKey)) {
-        const boardQuestions = res.questions[boardKey];
-        const decryptedBoard = await Promise.all(
-          boardQuestions.map(async (q: TQuestion) => ({
-            ...q,
-            expression: q.expression
-              ? JSON.parse(
-                  await decrypt(q.expression as unknown as string, key),
-                )
-              : null,
-            result:
-              q.result !== null && q.result !== undefined
-                ? Number(await decrypt(q.result, key))
-                : null,
-            choices: q.choices
-              ? JSON.parse(await decrypt(q.choices, key))
-              : null,
-            answer: q.answer ? await decrypt(q.answer, key) : null,
-          })),
-        );
-        allBoards[boardKey] = decryptedBoard;
-      }
-    }
-
-    setQuestions(allBoards);
-    const firstBoardKey = Object.keys(allBoards)[0];
-    setCurrentBoard(firstBoardKey);
-    setRevealed(true);
-    setLoading(false);
-  };
-
-  const handleAnswerSelect = (boardId: string, answer: string) => {
-    setSelectedAnswers((prev) => {
-      const newAnswers = { ...prev, [boardId]: answer };
-
-      const boardQuestions = questions[boardId] || [];
-      const allAnswered = boardQuestions
-        .filter((q) => q.choices)
-        .every(() => newAnswers[boardId]);
-
-      if (allAnswered) {
-        const boardKeys = Object.keys(questions);
-        const nextBoardIndex = boardKeys.indexOf(boardId) + 1;
-        if (nextBoardIndex < boardKeys.length) {
-          setCurrentBoard(boardKeys[nextBoardIndex]);
-        } else {
-          setCurrentBoard(null);
-          setTimeout(() => setShowModal(true), 400);
-        }
-      }
-
-      return newAnswers;
-    });
-  };
-
-  const totalQuestions = Object.values(questions).reduce(
-    (acc, arr) => acc + arr.filter((q) => q.choices).length,
-    0,
-  );
-
+  const showBoard = revealed && currentBoard;
+  const totalAnswers = useSelector(selectSelectedAnswers);
+  console.log("Total Answers:", totalAnswers);
   return (
     <main className="mt-6">
       <CompletionModal
@@ -112,52 +53,12 @@ function Hero() {
         total={totalQuestions}
         correct={totalQuestions}
       />
-      <Container
-        as="article"
-        className="relative px-[27px] !max-w-none !w-[366px] flex justify-center items-start flex-col gap-y-6"
-        style={{
-          backgroundImage: "url('/click-start-bg.svg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          width: "366px",
-          height: "352px",
-        }}
-      >
+      <PlayContainer>
         {loading ? (
-          <>
-            {[0, 1, 2, 3].map((idx) => (
-              <div
-                key={idx}
-                className="w-full h-10 rounded-lg bg-gradient-to-r from-yellow-100 via-yellow-200 to-yellow-100 animate-pulse mb-2 opacity-50 blur-2xl"
-                style={{ maxWidth: 320, minHeight: 40 }}
-              />
-            ))}
-          </>
-        ) : revealed && currentBoard ? (
+          <LoadingDisplay />
+        ) : showBoard ? (
           questions[currentBoard]?.map((q: TQuestion, idx: number) => (
-            <motion.div
-              key={`${currentBoard}-${q.id}`}
-              initial={{
-                opacity: 0,
-                y: 10,
-                filter: "blur(8px) brightness(0.95)",
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                filter: "none",
-                transition: {
-                  opacity: { delay: 0.2 + idx * 0.13, duration: 0.45 },
-                  y: {
-                    delay: 0.2 + idx * 0.13,
-                    type: "spring",
-                    stiffness: 350,
-                    damping: 22,
-                  },
-                  filter: { delay: 0.2 + idx * 0.13, duration: 0.4 },
-                },
-              }}
-            >
+            <PlayItemsWrapper key={`${currentBoard}-${q.id}`} idx={idx}>
               {q.expression && (
                 <LineItems className="relative">
                   {q.expression.map((item: string, i: number) =>
@@ -174,13 +75,13 @@ function Hero() {
                         emoji={emojis[item as keyof typeof emojis]}
                         name={item}
                       />
-                    ),
+                    )
                   )}
                   <Equals />
                   <EmojiResultCard result={q.result ?? "?"} />
                 </LineItems>
               )}
-            </motion.div>
+            </PlayItemsWrapper>
           ))
         ) : (
           <>
@@ -227,7 +128,7 @@ function Hero() {
           </>
         )}
 
-        {!revealed && !loading && (
+        {!showBoard && (
           <Container
             as="article"
             className="px-0 max-w-full flex flex-col gap-y-3 justify-center items-center absolute inset-0"
@@ -240,7 +141,7 @@ function Hero() {
             </Typography>
           </Container>
         )}
-      </Container>
+      </PlayContainer>
 
       <MotionBtn
         onClick={handlePlay}
@@ -250,7 +151,7 @@ function Hero() {
         className={revealed ? "!hidden" : ""}
       />
 
-      {currentBoard && (
+      {showBoard && (
         <Container
           as="article"
           className="px-0 !max-w-full flex flex-col justify-center items-center mt-3.5"
@@ -280,7 +181,7 @@ function Hero() {
                     ))
                   }
                 </Container>
-              ) : null,
+              ) : null
             )}
           </Container>
         </Container>
@@ -289,4 +190,4 @@ function Hero() {
   );
 }
 
-export default Hero;
+export default PlaySection;

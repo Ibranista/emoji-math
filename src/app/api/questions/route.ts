@@ -36,6 +36,18 @@ export async function GET() {
       { id: 4, choices: ["5", "10", "15"] },
       // { id: 5, answer: "10" },
     ],
+    // add me another third board
+    board3: [
+      { id: 1, expression: ["grin", "plus", "grin"], result: 20 },
+      { id: 2, expression: ["side-eyes", "minus", "pumpkin"], result: 0 },
+      {
+        id: 3,
+        expression: ["grin", "multiply", "side-eyes", "divide", "pumpkin"],
+        result: null,
+      },
+      { id: 4, choices: ["1", "2", "3"] },
+      // { id: 5, answer: "2" },
+    ],
   };
 
   const encryptedQuestions: Record<string, TEncryptedQuestion[]> = {};

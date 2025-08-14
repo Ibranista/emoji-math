@@ -4,15 +4,20 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { gameQuestionsApi } from "../services/game-questions";
 import { pokemonApi } from "../services/pokemon";
 
+import timerReducer from "./feature/timerSlice";
+import questionsReducer from "./feature/questionsSlice";
+
 export const store = configureStore({
   reducer: {
     [pokemonApi.reducerPath]: pokemonApi.reducer,
     [gameQuestionsApi.reducerPath]: gameQuestionsApi.reducer,
+    timer: timerReducer,
+    questions: questionsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       pokemonApi.middleware,
-      gameQuestionsApi.middleware,
+      gameQuestionsApi.middleware
     ),
 });
 

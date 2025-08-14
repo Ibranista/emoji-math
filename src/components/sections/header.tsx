@@ -1,22 +1,13 @@
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 
 import Container from "../ui/Container";
 import { Typography } from "../ui/typography";
+import { useTimer } from "@/hooks/timer";
 
 function Header() {
-  // Timer state in seconds
-  const [seconds, setSeconds] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+  // Timer state in seconds (from utils)
+  const seconds = useTimer(0);
 
   // Format seconds to mm:ss and split into digits
   const minutes = Math.floor(seconds / 60);
