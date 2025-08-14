@@ -58,7 +58,7 @@ export function useBoardFetch() {
       const nextBoard = getNextBoardId(currentBoard);
       if (nextBoard) {
         setCurrentBoard(nextBoard);
-        dispatch(setSeconds(10)); // restart timer for next board
+        dispatch(setSeconds(10));
       } else {
         setCurrentBoard(null);
         setTimeout(() => setShowModal(true), 400);
@@ -129,7 +129,7 @@ export function useBoardFetch() {
     const nextBoard = getNextBoardId(boardId);
     if (nextBoard) {
       setCurrentBoard(nextBoard);
-      dispatch(setSeconds(10)); // restart timer
+      dispatch(setSeconds(10));
     } else {
       setCurrentBoard(null);
       if (intervalRef.current) clearInterval(intervalRef.current);
