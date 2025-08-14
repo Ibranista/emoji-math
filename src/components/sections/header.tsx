@@ -1,24 +1,15 @@
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { useSelector } from "react-redux";
+
+import { selectSeconds } from "@/store/feature/timerSlice";
 
 import Container from "../ui/Container";
 import { Typography } from "../ui/typography";
 
 function Header() {
-  // Timer state in seconds
-  const [seconds, setSeconds] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const seconds = useSelector(selectSeconds);
 
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  // Format seconds to mm:ss and split into digits
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
   const mm = String(minutes).padStart(2, "0");

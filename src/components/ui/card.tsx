@@ -152,3 +152,17 @@ export function ArithmeticDisplay({
 
   return <>{icons[symbol]}</>;
 }
+
+export function LoadingDisplay() {
+  return (
+    <>
+      {[0, 1, 2, 3].map((idx) => (
+        <div
+          key={idx}
+          className="w-full h-10 rounded-lg bg-gradient-to-r from-yellow-100 via-yellow-200 to-yellow-100 animate-pulse mb-2 opacity-20 blur-2xl"
+          style={{ maxWidth: 320, minHeight: 40 }}
+        />
+      ))}
+    </>
+  );
+}
