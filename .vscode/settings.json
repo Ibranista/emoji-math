@@ -2,6 +2,12 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
   "i18n-ally.localesPaths": ["src/i18n", "src/messages"],
   "i18n-ally.keystyle": "nested"
 }

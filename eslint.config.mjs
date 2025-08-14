@@ -15,8 +15,8 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     plugins: {
-      "unused-imports": unusedImports,
-      "simple-import-sort": simpleImportSort,
+      "unused-imports": "off",
+      "simple-import-sort": "off",
     },
     rules: {
       "unused-imports/no-unused-imports": "error",
